@@ -2,9 +2,9 @@
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "sudom",
   "title": "Sudom",
-  "description": "Help to solve sudom",
+  "description": "Help to solve sutom",
   "icon": "extension-icon.png",
-  "author": "oliverde8_d",
+  "author": "oliverde8",
   "platforms": [
     "macOS",
     "Windows"
@@ -15,9 +15,9 @@
   "license": "MIT",
   "commands": [
     {
-      "name": "sudom",
-      "title": "sudom",
-      "description": "",
+      "name": "sutom",
+      "title": "sutom",
+      "description": "Help resolving sutom's in french",
       "mode": "view"
     }
   ],
