@@ -1,8 +1,8 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "sudom",
-  "title": "Sudom",
-  "description": "Help to solve sutom",
+  "name": "wordle",
+  "title": "Wordle - Sutom",
+  "description": "Help to solve wordle game's in english and french",
   "icon": "extension-icon.png",
   "author": "oliverde8",
   "platforms": [
@@ -19,11 +19,18 @@
       "title": "sutom",
       "description": "Help resolving sutom's in french",
       "mode": "view"
+    },
+    {
+      "name": "wordle",
+      "title": "wordle",
+      "description": "Help resolving wordle's in english",
+      "mode": "view"
     }
   ],
   "dependencies": {
     "@raycast/api": "^1.103.4",
     "@raycast/utils": "^1.17.0",
+    "an-array-of-english-words": "^2.0.0",
     "an-array-of-french-words": "^2.0.0"
   },
   "devDependencies": {

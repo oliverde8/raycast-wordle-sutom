@@ -1,3 +1,7 @@
+// English words package (similar structure to the French package)
+// Installed with: npm install an-array-of-english-words
+
+import englishWords from "an-array-of-english-words";
 import type { LanguageConfig } from "./languageConfig";
 
 // English letter frequency based on corpus analysis
@@ -40,9 +44,7 @@ const ENGLISH_STARTING_WORDS: { [key: number]: string[] } = {
 };
 
 export const englishConfig: LanguageConfig = {
-  // Note: You would need to add an English word source here
-  // wordSource: englishWords as string[],
-  wordSource: [], // Placeholder - needs actual English word list
+  wordSource: englishWords as string[],
   
   letterFrequency: ENGLISH_LETTER_FREQUENCY,
   
