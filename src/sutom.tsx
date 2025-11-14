@@ -29,7 +29,7 @@ export default function Command() {
     if (!suggestion) {
       showToast({
         title: "Aucune suggestion",
-        message: "Aucun mot ne correspond aux critères"
+        message: "Aucun mot ne correspond aux critères",
       });
       return;
     }
@@ -47,7 +47,7 @@ export default function Command() {
 
     showToast({
       title: "Longueur définie",
-      message: `Prêt à suggérer des mots de ${length} lettres`
+      message: `Prêt à suggérer des mots de ${length} lettres`,
     });
     generateSuggestion();
   };
@@ -63,7 +63,7 @@ export default function Command() {
 
     const newWordFeedback: WordFeedback = {
       word: currentSuggestion,
-      feedback: feedback
+      feedback: feedback,
     };
 
     const updatedTestedWords = [...testedWords, newWordFeedback];
@@ -72,7 +72,7 @@ export default function Command() {
     setShowFeedbackForm(false);
     showToast({
       title: "Retour enregistré",
-      message: "Prêt pour la prochaine suggestion"
+      message: "Prêt pour la prochaine suggestion",
     });
 
     generateSuggestion(updatedTestedWords);
@@ -91,18 +91,12 @@ export default function Command() {
       <Form
         actions={
           <ActionPanel>
-            {!currentSuggestion && (
-              <Action.SubmitForm title="Définir La Longueur" onSubmit={handleLengthSubmit} />
-            )}
-            {currentSuggestion && (
-              <Action title="Nouvelle Suggestion" onAction={generateSuggestion} />
-            )}
+            {!currentSuggestion && <Action.SubmitForm title="Définir La Longueur" onSubmit={handleLengthSubmit} />}
+            {currentSuggestion && <Action title="Nouvelle Suggestion" onAction={generateSuggestion} />}
             {(currentSuggestion || testedWords.length > 0) && (
               <Action title="Obtenir Suggestion" onAction={generateSuggestion} />
             )}
-            {testedWords.length > 0 && (
-              <Action title="Réinitialiser" onAction={reset} />
-            )}
+            {testedWords.length > 0 && <Action title="Réinitialiser" onAction={reset} />}
           </ActionPanel>
         }
       >
@@ -126,17 +120,10 @@ export default function Command() {
         </ActionPanel>
       }
     >
-      <Form.Description
-        title="Mot"
-        text={`Donnez votre retour pour : ${currentSuggestion}`}
-      />
+      <Form.Description title="Mot" text={`Donnez votre retour pour : ${currentSuggestion}`} />
 
       {Array.from({ length: wordLength }, (_, i) => (
-        <Form.Dropdown
-          key={i}
-          id={`letter${i}`}
-          title={`Lettre ${i + 1} (${currentSuggestion[i]})`}
-        >
+        <Form.Dropdown key={i} id={`letter${i}`} title={`Lettre ${i + 1} (${currentSuggestion[i]})`}>
           <Form.Dropdown.Item value="correct" title="✅ Bonne position" />
           <Form.Dropdown.Item value="wrong-position" title="🟡 Mauvaise position" />
           <Form.Dropdown.Item value="not-in-word" title="❌ Pas dans le mot" />
@@ -144,29 +131,27 @@ export default function Command() {
       ))}
 
       {currentSuggestion && (
-        <Form.Description
-          title="Suggestion actuelle"
-          text={`Essayez ce mot : ${currentSuggestion}`}
-        />
+        <Form.Description title="Suggestion actuelle" text={`Essayez ce mot : ${currentSuggestion}`} />
       )}
 
       {testedWords.length > 0 && (
         <Form.Description
           title="Mots testés"
-          text={`${testedWords.length} mot(s) testé(s) : ${testedWords.map(w => w.word).join(", ")}`}
+          text={`${testedWords.length} mot(s) testé(s) : ${testedWords.map((w) => w.word).join(", ")}`}
         />
       )}
 
-      {wordSelector.getAllWords(wordLength).length > 0 && (() => {
-        const analysis = wordSelector.getWordAnalysis(wordLength, testedWords);
-        const reductionPercentage = ((1 - analysis.reductionRatio) * 100).toFixed(1);
-        return (
-          <Form.Description
-            title="Analyse"
-            text={`${analysis.remainingWords}/${analysis.totalWords} mots restants (${reductionPercentage}% éliminés)${analysis.averageScore ? ` - Score moyen: ${analysis.averageScore.toFixed(1)}` : ''}`}
-          />
-        );
-      })()}
+      {wordSelector.getAllWords(wordLength).length > 0 &&
+        (() => {
+          const analysis = wordSelector.getWordAnalysis(wordLength, testedWords);
+          const reductionPercentage = ((1 - analysis.reductionRatio) * 100).toFixed(1);
+          return (
+            <Form.Description
+              title="Analyse"
+              text={`${analysis.remainingWords}/${analysis.totalWords} mots restants (${reductionPercentage}% éliminés)${analysis.averageScore ? ` - Score moyen: ${analysis.averageScore.toFixed(1)}` : ""}`}
+            />
+          );
+        })()}
     </Form>
   );
 }

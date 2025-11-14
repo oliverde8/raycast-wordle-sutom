@@ -17,7 +17,7 @@ const STARTING_WORDS: { [key: number]: string[] } = {
   5: ["ARISE", "SONAR", "SALON", "NOTRE", "TRAIN"],
   6: ["SOIENT", "ENTRAI", "ORNAIS", "SOLEIL", "TRAIES"],
   7: ["SENTIRA", "ENTRAIS", "ORANTES", "TRAITES", "ORNATES"],
-  8: ["ENTRAINS", "ORATEURS", "TRAINEES", "ORNATES", "SENTIRAS"]
+  8: ["ENTRAINS", "ORATEURS", "TRAINEES", "ORNATES", "SENTIRAS"],
 };
 
 export class WordSelector {
@@ -32,8 +32,8 @@ export class WordSelector {
   private createWordsDictionary(): WordsDictionary {
     const dictionary: WordsDictionary = {};
 
-    const filteredWords = frenchWords.filter((word: string) => {
-      const normalizedWord = word.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const filteredWords = (frenchWords as string[]).filter((word: string) => {
+      const normalizedWord = word.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const basicLettersOnly = /^[a-zA-Z]+$/;
       const hasAccents = word !== normalizedWord;
 
@@ -42,14 +42,14 @@ export class WordSelector {
         word.length <= 8 &&
         basicLettersOnly.test(word) &&
         !hasAccents &&
-        !word.includes('-') &&
-        !word.includes(' ') &&
+        !word.includes("-") &&
+        !word.includes(" ") &&
         !word.includes("'") &&
-        !word.includes('.') &&
-        !word.includes(',') &&
-        !word.includes('_') &&
-        !word.includes('ç') &&
-        !word.includes('Ç')
+        !word.includes(".") &&
+        !word.includes(",") &&
+        !word.includes("_") &&
+        !word.includes("ç") &&
+        !word.includes("Ç")
       );
     });
 
@@ -67,9 +67,9 @@ export class WordSelector {
   private filterWords(words: string[], feedbackHistory: WordFeedback[]): string[] {
     if (feedbackHistory.length === 0) return words;
 
-    return words.filter(word => {
+    return words.filter((word) => {
       // Pre-compute word character array for faster access
-      const wordChars = word.split('');
+      const wordChars = word.split("");
 
       for (const wordFeedback of feedbackHistory) {
         if (!this.wordMatchesFeedback(wordChars, wordFeedback)) {
@@ -83,7 +83,7 @@ export class WordSelector {
   private wordMatchesFeedback(wordChars: string[], wordFeedback: WordFeedback): boolean {
     const testWord = wordFeedback.word.toLowerCase();
     const feedback = wordFeedback.feedback;
-    const testChars = testWord.split('');
+    const testChars = testWord.split("");
 
     // Pre-compute letter constraints
     const letterConstraints = this.buildLetterConstraints(testChars, feedback);
@@ -130,13 +130,16 @@ export class WordSelector {
   }
 
   private buildLetterConstraints(testChars: string[], feedback: LetterFeedback[]) {
-    const constraints = new Map<string, {
-      minCount: number;
-      maxCount?: number;
-      exactCount?: number;
-      forbiddenPositions: Set<number>;
-      mustBePresent: boolean;
-    }>();
+    const constraints = new Map<
+      string,
+      {
+        minCount: number;
+        maxCount?: number;
+        exactCount?: number;
+        forbiddenPositions: Set<number>;
+        mustBePresent: boolean;
+      }
+    >();
 
     // Count feedback types per letter
     const feedbackCounts = new Map<string, { correct: number; wrongPosition: number; notInWord: number }>();
@@ -157,10 +160,16 @@ export class WordSelector {
 
     // Build constraints
     for (const [letter, counts] of feedbackCounts) {
-      const constraint = {
+      const constraint: {
+        minCount: number;
+        maxCount?: number;
+        exactCount?: number;
+        forbiddenPositions: Set<number>;
+        mustBePresent: boolean;
+      } = {
         minCount: counts.correct + counts.wrongPosition,
         forbiddenPositions: new Set<number>(),
-        mustBePresent: counts.correct > 0 || counts.wrongPosition > 0
+        mustBePresent: counts.correct > 0 || counts.wrongPosition > 0,
       };
 
       // If we have "not-in-word" feedback, this gives us exact count
@@ -239,18 +248,16 @@ export class WordSelector {
   }
 
   private generateCacheKey(length: number, testedWords: WordFeedback[]): string {
-    const wordsKey = testedWords.map(w => 
-      `${w.word}:${w.feedback.join('')}`
-    ).join('|');
+    const wordsKey = testedWords.map((w) => `${w.word}:${w.feedback.join("")}`).join("|");
     return `${length}:${wordsKey}`;
   }
 
   private selectOptimalWord(candidates: string[]): string {
     if (candidates.length === 1) return candidates[0];
 
-    const scores: WordScore[] = candidates.map(word => ({
+    const scores: WordScore[] = candidates.map((word) => ({
       word,
-      score: this.calculateWordScore(word, candidates)
+      score: this.calculateWordScore(word, candidates),
     }));
 
     // Sort by score (descending) and pick best
@@ -262,9 +269,9 @@ export class WordSelector {
   }
 
   private selectFrequencyBasedWord(candidates: string[]): string {
-    const scores: WordScore[] = candidates.map(word => ({
+    const scores: WordScore[] = candidates.map((word) => ({
       word,
-      score: WordScorer.calculateFrequencyScore(word) + WordScorer.calculatePositionScore(word)
+      score: WordScorer.calculateFrequencyScore(word) + WordScorer.calculatePositionScore(word),
     }));
 
     scores.sort((a, b) => b.score - a.score);
@@ -300,11 +307,14 @@ export class WordSelector {
   public getCacheStats(): { size: number; keys: string[] } {
     return {
       size: this.cache.size,
-      keys: Array.from(this.cache.keys())
+      keys: Array.from(this.cache.keys()),
     };
   }
 
-  public getWordAnalysis(length: number, testedWords: WordFeedback[]): {
+  public getWordAnalysis(
+    length: number,
+    testedWords: WordFeedback[],
+  ): {
     totalWords: number;
     remainingWords: number;
     reductionRatio: number;
@@ -316,9 +326,7 @@ export class WordSelector {
 
     let averageScore: number | undefined;
     if (remainingWords <= this.MAX_CANDIDATES_FOR_ANALYSIS && remainingWords > 0) {
-      const scores = filteredWords.map(word => 
-        this.calculateWordScore(word, filteredWords)
-      );
+      const scores = filteredWords.map((word) => this.calculateWordScore(word, filteredWords));
       averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
     }
 
@@ -326,7 +334,7 @@ export class WordSelector {
       totalWords,
       remainingWords,
       reductionRatio: totalWords > 0 ? remainingWords / totalWords : 0,
-      averageScore
+      averageScore,
     };
   }
 }

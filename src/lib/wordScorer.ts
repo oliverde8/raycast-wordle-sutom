@@ -1,10 +1,31 @@
 // French letter frequency based on corpus analysis
 export const FRENCH_LETTER_FREQUENCY: { [key: string]: number } = {
-  e: 12.02, s: 7.90, a: 7.11, r: 6.46, n: 7.15, t: 7.24, 
-  i: 6.64, o: 5.14, l: 5.34, u: 6.24, d: 3.67, c: 3.18,
-  m: 2.62, p: 2.49, b: 1.13, v: 2.15, h: 0.64, f: 1.06,
-  g: 0.87, y: 0.46, q: 0.65, j: 0.45, x: 0.54, z: 0.21,
-  k: 0.16, w: 0.04
+  e: 12.02,
+  s: 7.9,
+  a: 7.11,
+  r: 6.46,
+  n: 7.15,
+  t: 7.24,
+  i: 6.64,
+  o: 5.14,
+  l: 5.34,
+  u: 6.24,
+  d: 3.67,
+  c: 3.18,
+  m: 2.62,
+  p: 2.49,
+  b: 1.13,
+  v: 2.15,
+  h: 0.64,
+  f: 1.06,
+  g: 0.87,
+  y: 0.46,
+  q: 0.65,
+  j: 0.45,
+  x: 0.54,
+  z: 0.21,
+  k: 0.16,
+  w: 0.04,
 };
 
 export interface WordScore {
@@ -65,8 +86,8 @@ export class WordScorer {
    * Calculate position-based score (common letters in common positions)
    */
   static calculatePositionScore(word: string): number {
-    const commonFirstLetters = ['s', 'c', 'p', 'm', 'r', 'l', 't', 'd'];
-    const commonLastLetters = ['s', 'e', 'r', 't', 'n'];
+    const commonFirstLetters = ["s", "c", "p", "m", "r", "l", "t", "d"];
+    const commonLastLetters = ["s", "e", "r", "t", "n"];
 
     let score = 0;
 
@@ -88,20 +109,20 @@ export class WordScorer {
    */
   private static getFeedbackPattern(guess: string, answer: string): string {
     const pattern: string[] = [];
-    const answerLetters = answer.split('');
+    const answerLetters = answer.split("");
     const usedPositions = new Set<number>();
 
     // First pass: mark correct positions
     for (let i = 0; i < guess.length; i++) {
       if (guess[i] === answer[i]) {
-        pattern[i] = 'C';
+        pattern[i] = "C";
         usedPositions.add(i);
       }
     }
 
     // Second pass: mark wrong positions and not-in-word
     for (let i = 0; i < guess.length; i++) {
-      if (pattern[i] === 'C') continue;
+      if (pattern[i] === "C") continue;
 
       const letter = guess[i];
       let foundAt = -1;
@@ -114,13 +135,13 @@ export class WordScorer {
       }
 
       if (foundAt >= 0) {
-        pattern[i] = 'W'; // wrong position
+        pattern[i] = "W"; // wrong position
         usedPositions.add(foundAt);
       } else {
-        pattern[i] = 'N'; // not in word
+        pattern[i] = "N"; // not in word
       }
     }
 
-    return pattern.join('');
+    return pattern.join("");
   }
 }
