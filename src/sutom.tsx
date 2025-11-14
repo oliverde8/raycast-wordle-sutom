@@ -74,7 +74,7 @@ export default function Command() {
       title: "Retour enregistré",
       message: "Prêt pour la prochaine suggestion"
     });
-    
+
     generateSuggestion(updatedTestedWords);
   };
 
@@ -82,6 +82,7 @@ export default function Command() {
     setTestedWords([]);
     setCurrentSuggestion("");
     setShowFeedbackForm(false);
+    wordSelector.clearCache();
     showToast({ title: "Réinitialisation", message: "Toutes les données effacées" });
   };
 
@@ -156,12 +157,18 @@ export default function Command() {
         />
       )}
 
-      {wordSelector.getAllWords(wordLength).length > 0 && (
-        <Form.Description
-          title="Mots disponibles"
-          text={`${wordSelector.getRemainingWordsCount(wordLength, testedWords)} mots restants`}
-        />
-      )}
+      {wordSelector.getAllWords(wordLength).length > 0 && (() => {
+        const analysis = wordSelector.getWordAnalysis(wordLength, testedWords);
+        const reductionPercentage = ((1 - analysis.reductionRatio) * 100).toFixed(1);
+        return (
+          <Form.Description
+            title="Analyse"
+            text={`${analysis.remainingWords}/${analysis.totalWords} mots restants (${reductionPercentage}% éliminés)${analysis.averageScore ? ` - Score moyen: ${analysis.averageScore.toFixed(1)}` : ''}`}
+          />
+        );
+      })()}
     </Form>
   );
 }
+
+// RENDE
