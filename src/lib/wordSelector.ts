@@ -1,5 +1,5 @@
-import frenchWords from "an-array-of-french-words";
 import { WordScorer, type WordScore } from "./wordScorer";
+import type { LanguageConfig } from "./languageConfig";
 
 export type LetterFeedback = "correct" | "wrong-position" | "not-in-word" | "unknown";
 
@@ -10,47 +10,44 @@ export type WordFeedback = {
 
 type WordsDictionary = { [key: number]: string[] };
 
-// Optimal starting words based on French letter frequency and vowel distribution
-// These words prioritize common letters: E, A, R, I, S, T, N, O, L
-const STARTING_WORDS: { [key: number]: string[] } = {
-  4: ["AIRE", "ARTS", "OSER", "LENT", "RIEN"],
-  5: ["ARISE", "SONAR", "SALON", "NOTRE", "TRAIN"],
-  6: ["SOIENT", "ENTRAI", "ORNAIS", "SOLEIL", "TRAIES"],
-  7: ["SENTIRA", "ENTRAIS", "ORANTES", "TRAITES", "ORNATES"],
-  8: ["ENTRAINS", "ORATEURS", "TRAINEES", "ORNATES", "SENTIRAS"],
-};
-
 export class WordSelector {
   private dictionary: WordsDictionary;
   private cache: Map<string, string[]> = new Map();
   private readonly MAX_CANDIDATES_FOR_ANALYSIS = 100;
+  private config: LanguageConfig;
+  private wordScorer: WordScorer;
 
-  constructor() {
+  constructor(config: LanguageConfig) {
+    this.config = config;
+    this.wordScorer = new WordScorer(config);
     this.dictionary = this.createWordsDictionary();
   }
 
   private createWordsDictionary(): WordsDictionary {
     const dictionary: WordsDictionary = {};
+    const { wordSource, wordFilter } = this.config;
+    
+    const sourceWords = typeof wordSource === 'function' ? wordSource() : wordSource;
 
-    const filteredWords = (frenchWords as string[]).filter((word: string) => {
-      const normalizedWord = word.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const basicLettersOnly = /^[a-zA-Z]+$/;
-      const hasAccents = word !== normalizedWord;
+    const filteredWords = sourceWords.filter((word: string) => {
+      // Basic length check
+      if (word.length < wordFilter.minLength || word.length > wordFilter.maxLength) {
+        return false;
+      }
 
-      return (
-        word.length >= 4 &&
-        word.length <= 8 &&
-        basicLettersOnly.test(word) &&
-        !hasAccents &&
-        !word.includes("-") &&
-        !word.includes(" ") &&
-        !word.includes("'") &&
-        !word.includes(".") &&
-        !word.includes(",") &&
-        !word.includes("_") &&
-        !word.includes("ç") &&
-        !word.includes("Ç")
-      );
+      // Check excluded characters
+      for (const char of wordFilter.excludedCharacters) {
+        if (word.includes(char)) {
+          return false;
+        }
+      }
+
+      // Custom filter if provided
+      if (wordFilter.customFilter && !wordFilter.customFilter(word)) {
+        return false;
+      }
+
+      return true;
     });
 
     filteredWords.forEach((word: string) => {
@@ -199,7 +196,7 @@ export class WordSelector {
   }
 
   private getStartingWord(length: number): string | null {
-    const startingWords = STARTING_WORDS[length];
+    const startingWords = this.config.startingWords[length];
     if (!startingWords || startingWords.length === 0) {
       const availableWords = this.dictionary[length] || [];
       if (availableWords.length === 0) return null;
@@ -271,7 +268,7 @@ export class WordSelector {
   private selectFrequencyBasedWord(candidates: string[]): string {
     const scores: WordScore[] = candidates.map((word) => ({
       word,
-      score: WordScorer.calculateFrequencyScore(word) + WordScorer.calculatePositionScore(word),
+      score: this.wordScorer.calculateFrequencyScore(word) + this.wordScorer.calculatePositionScore(word),
     }));
 
     scores.sort((a, b) => b.score - a.score);
@@ -284,9 +281,9 @@ export class WordSelector {
   }
 
   private calculateWordScore(word: string, candidates: string[]): number {
-    const informationScore = WordScorer.calculateInformationScore(word, candidates);
-    const frequencyScore = WordScorer.calculateFrequencyScore(word);
-    const positionScore = WordScorer.calculatePositionScore(word);
+    const informationScore = this.wordScorer.calculateInformationScore(word, candidates);
+    const frequencyScore = this.wordScorer.calculateFrequencyScore(word);
+    const positionScore = this.wordScorer.calculatePositionScore(word);
 
     // Weight information theory highest for optimal play
     return informationScore * 10 + frequencyScore * 2 + positionScore;

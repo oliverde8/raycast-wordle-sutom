@@ -1,32 +1,4 @@
-// French letter frequency based on corpus analysis
-export const FRENCH_LETTER_FREQUENCY: { [key: string]: number } = {
-  e: 12.02,
-  s: 7.9,
-  a: 7.11,
-  r: 6.46,
-  n: 7.15,
-  t: 7.24,
-  i: 6.64,
-  o: 5.14,
-  l: 5.34,
-  u: 6.24,
-  d: 3.67,
-  c: 3.18,
-  m: 2.62,
-  p: 2.49,
-  b: 1.13,
-  v: 2.15,
-  h: 0.64,
-  f: 1.06,
-  g: 0.87,
-  y: 0.46,
-  q: 0.65,
-  j: 0.45,
-  x: 0.54,
-  z: 0.21,
-  k: 0.16,
-  w: 0.04,
-};
+import type { LanguageConfig } from "./languageConfig";
 
 export interface WordScore {
   word: string;
@@ -34,11 +6,16 @@ export interface WordScore {
 }
 
 export class WordScorer {
+  private config: LanguageConfig;
+
+  constructor(config: LanguageConfig) {
+    this.config = config;
+  }
   /**
    * Calculate information value of a word based on remaining possibilities
    * Uses entropy to measure how much information a word can provide
    */
-  static calculateInformationScore(word: string, candidateWords: string[]): number {
+  calculateInformationScore(word: string, candidateWords: string[]): number {
     if (candidateWords.length <= 1) return 0;
 
     // Group candidate words by potential feedback patterns
@@ -62,9 +39,9 @@ export class WordScorer {
   }
 
   /**
-   * Calculate frequency score based on letter frequency in French
+   * Calculate frequency score based on letter frequency
    */
-  static calculateFrequencyScore(word: string): number {
+  calculateFrequencyScore(word: string): number {
     let score = 0;
     const letterCounts = new Map<string, number>();
 
@@ -74,7 +51,7 @@ export class WordScorer {
     }
 
     for (const [letter, count] of letterCounts) {
-      const frequency = FRENCH_LETTER_FREQUENCY[letter.toLowerCase()] || 0;
+      const frequency = this.config.letterFrequency[letter.toLowerCase()] || 0;
       // Penalize repeated letters
       score += frequency / count;
     }
@@ -85,20 +62,20 @@ export class WordScorer {
   /**
    * Calculate position-based score (common letters in common positions)
    */
-  static calculatePositionScore(word: string): number {
-    const commonFirstLetters = ["s", "c", "p", "m", "r", "l", "t", "d"];
-    const commonLastLetters = ["s", "e", "r", "t", "n"];
+  calculatePositionScore(word: string): number {
+    const { commonFirstLetters, commonLastLetters, firstLetterBonus, lastLetterBonus } =
+      this.config.positionScoring;
 
     let score = 0;
 
     // Bonus for common first letter
     if (commonFirstLetters.includes(word[0].toLowerCase())) {
-      score += 2;
+      score += firstLetterBonus;
     }
 
     // Bonus for common last letter
     if (commonLastLetters.includes(word[word.length - 1].toLowerCase())) {
-      score += 1.5;
+      score += lastLetterBonus;
     }
 
     return score;
@@ -107,7 +84,7 @@ export class WordScorer {
   /**
    * Generate feedback pattern for two words (what feedback word1 would get if word2 was the answer)
    */
-  private static getFeedbackPattern(guess: string, answer: string): string {
+  private getFeedbackPattern(guess: string, answer: string): string {
     const pattern: string[] = [];
     const answerLetters = answer.split("");
     const usedPositions = new Set<number>();
