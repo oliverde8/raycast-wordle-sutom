@@ -1,5 +1,3 @@
-# 💬 Raycast Sudom
+# 💬 Raycast Wordle / Sutom resolver
 
-A helper utility to resolve Sudom's in 🇫🇷 only at the moment.
-
-Quick and dirty :/
+A helper utility to resolve Wordle(🇬🇧 English) and Sutom(🇫🇷 French) game.
