@@ -97,9 +97,7 @@ export function WordGameComponent({ config }: WordGameProps) {
   // Generate length options based on config
   const lengthOptions = [];
   for (let i = config.wordFilter.minLength; i <= config.wordFilter.maxLength; i++) {
-    lengthOptions.push(
-      <Form.Dropdown.Item key={i} value={i.toString()} title={`${i} ${config.ui.lettersUnit}`} />
-    );
+    lengthOptions.push(<Form.Dropdown.Item key={i} value={i.toString()} title={`${i} ${config.ui.lettersUnit}`} />);
   }
 
   if (!showFeedbackForm) {
@@ -107,7 +105,9 @@ export function WordGameComponent({ config }: WordGameProps) {
       <Form
         actions={
           <ActionPanel>
-            {!currentSuggestion && <Action.SubmitForm title={config.ui.setLengthAction} onSubmit={handleLengthSubmit} />}
+            {!currentSuggestion && (
+              <Action.SubmitForm title={config.ui.setLengthAction} onSubmit={handleLengthSubmit} />
+            )}
             {currentSuggestion && <Action title={config.ui.newSuggestionAction} onAction={generateSuggestion} />}
             {(currentSuggestion || testedWords.length > 0) && (
               <Action title={config.ui.getSuggestionAction} onAction={generateSuggestion} />
@@ -121,7 +121,10 @@ export function WordGameComponent({ config }: WordGameProps) {
         </Form.Dropdown>
 
         {currentSuggestion && (
-          <Form.Description title={config.ui.suggestionLabel} text={`${config.ui.tryWordLabel}: ${currentSuggestion}`} />
+          <Form.Description
+            title={config.ui.suggestionLabel}
+            text={`${config.ui.tryWordLabel}: ${currentSuggestion}`}
+          />
         )}
       </Form>
     );

@@ -26,8 +26,8 @@ export class WordSelector {
   private createWordsDictionary(): WordsDictionary {
     const dictionary: WordsDictionary = {};
     const { wordSource, wordFilter } = this.config;
-    
-    const sourceWords = typeof wordSource === 'function' ? wordSource() : wordSource;
+
+    const sourceWords = typeof wordSource === "function" ? wordSource() : wordSource;
 
     const filteredWords = sourceWords.filter((word: string) => {
       // Basic length check

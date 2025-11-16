@@ -63,8 +63,7 @@ export class WordScorer {
    * Calculate position-based score (common letters in common positions)
    */
   calculatePositionScore(word: string): number {
-    const { commonFirstLetters, commonLastLetters, firstLetterBonus, lastLetterBonus } =
-      this.config.positionScoring;
+    const { commonFirstLetters, commonLastLetters, firstLetterBonus, lastLetterBonus } = this.config.positionScoring;
 
     let score = 0;
 

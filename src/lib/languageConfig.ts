@@ -1,13 +1,13 @@
 export interface LanguageConfig {
   // Word source data
   wordSource: string[] | (() => string[]);
-  
+
   // Letter frequency data for scoring
   letterFrequency: { [key: string]: number };
-  
+
   // Optimal starting words for each length
   startingWords: { [key: number]: string[] };
-  
+
   // Language-specific filtering rules
   wordFilter: {
     minLength: number;
@@ -16,7 +16,7 @@ export interface LanguageConfig {
     excludedCharacters: string[];
     customFilter?: (word: string) => boolean;
   };
-  
+
   // Position-based scoring rules
   positionScoring: {
     commonFirstLetters: string[];
@@ -24,7 +24,7 @@ export interface LanguageConfig {
     firstLetterBonus: number;
     lastLetterBonus: number;
   };
-  
+
   // UI text/labels
   ui: {
     language: string;
@@ -41,7 +41,7 @@ export interface LanguageConfig {
     feedbackSavedMessage: string;
     resetTitle: string;
     resetMessage: string;
-    
+
     // Action labels
     setLengthAction: string;
     newSuggestionAction: string;
@@ -49,7 +49,7 @@ export interface LanguageConfig {
     resetAction: string;
     submitFeedbackAction: string;
     cancelAction: string;
-    
+
     // Additional UI labels
     tryWordLabel: string;
     testedWordCount: string;

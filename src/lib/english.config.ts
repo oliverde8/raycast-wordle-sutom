@@ -30,7 +30,7 @@ const ENGLISH_LETTER_FREQUENCY: { [key: string]: number } = {
   k: 0.8,
   j: 0.15,
   x: 0.15,
-  q: 0.10,
+  q: 0.1,
   z: 0.07,
 };
 
@@ -45,29 +45,29 @@ const ENGLISH_STARTING_WORDS: { [key: number]: string[] } = {
 
 export const englishConfig: LanguageConfig = {
   wordSource: englishWords as string[],
-  
+
   letterFrequency: ENGLISH_LETTER_FREQUENCY,
-  
+
   startingWords: ENGLISH_STARTING_WORDS,
-  
+
   wordFilter: {
     minLength: 4,
     maxLength: 8,
     allowAccents: false,
-    excludedCharacters: ['-', ' ', "'", '.', ',', '_'],
+    excludedCharacters: ["-", " ", "'", ".", ",", "_"],
     customFilter: (word: string) => {
       const basicLettersOnly = /^[a-zA-Z]+$/;
       return basicLettersOnly.test(word);
-    }
+    },
   },
-  
+
   positionScoring: {
-    commonFirstLetters: ['s', 'c', 'b', 'p', 't', 'a', 'f', 'd'],
-    commonLastLetters: ['s', 'e', 'y', 'd', 'n', 't', 'r'],
+    commonFirstLetters: ["s", "c", "b", "p", "t", "a", "f", "d"],
+    commonLastLetters: ["s", "e", "y", "d", "n", "t", "r"],
     firstLetterBonus: 2,
-    lastLetterBonus: 1.5
+    lastLetterBonus: 1.5,
   },
-  
+
   ui: {
     language: "English",
     lengthLabel: "Word length",
@@ -83,7 +83,7 @@ export const englishConfig: LanguageConfig = {
     feedbackSavedMessage: "Ready for next suggestion",
     resetTitle: "Reset",
     resetMessage: "All data cleared",
-    
+
     // Action labels
     setLengthAction: "Set Length",
     newSuggestionAction: "New Suggestion",
@@ -91,7 +91,7 @@ export const englishConfig: LanguageConfig = {
     resetAction: "Reset",
     submitFeedbackAction: "Submit Feedback",
     cancelAction: "Cancel",
-    
+
     // Additional UI labels
     tryWordLabel: "Try this word",
     testedWordCount: "word(s) tested",
@@ -104,5 +104,5 @@ export const englishConfig: LanguageConfig = {
     wrongPositionLabel: "Wrong position",
     notInWordLabel: "Not in word",
     lettersUnit: "letters",
-  }
+  },
 };

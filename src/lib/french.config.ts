@@ -52,24 +52,21 @@ export const frenchConfig: LanguageConfig = {
     minLength: 4,
     maxLength: 8,
     allowAccents: false,
-    excludedCharacters: ['-', ' ', "'", '.', ',', '_', 'ç', 'Ç'],
+    excludedCharacters: ["-", " ", "'", ".", ",", "_", "ç", "Ç"],
     customFilter: (word: string) => {
-      const normalizedWord = word.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const normalizedWord = word.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const basicLettersOnly = /^[a-zA-Z]+$/;
       const hasAccents = word !== normalizedWord;
 
-      return (
-        basicLettersOnly.test(word) &&
-        !hasAccents
-      );
-    }
+      return basicLettersOnly.test(word) && !hasAccents;
+    },
   },
 
   positionScoring: {
-    commonFirstLetters: ['s', 'c', 'p', 'm', 'r', 'l', 't', 'd'],
-    commonLastLetters: ['s', 'e', 'r', 't', 'n'],
+    commonFirstLetters: ["s", "c", "p", "m", "r", "l", "t", "d"],
+    commonLastLetters: ["s", "e", "r", "t", "n"],
     firstLetterBonus: 2,
-    lastLetterBonus: 1.5
+    lastLetterBonus: 1.5,
   },
 
   ui: {
@@ -87,7 +84,7 @@ export const frenchConfig: LanguageConfig = {
     feedbackSavedMessage: "Prêt pour la prochaine suggestion",
     resetTitle: "Réinitialisation",
     resetMessage: "Toutes les données effacées",
-    
+
     // Action labels
     setLengthAction: "Définir la longueur",
     newSuggestionAction: "Nouvelle suggestion",
@@ -95,7 +92,7 @@ export const frenchConfig: LanguageConfig = {
     resetAction: "Réinitialiser",
     submitFeedbackAction: "Valider le retour",
     cancelAction: "Annuler",
-    
+
     // Additional UI labels
     tryWordLabel: "Essayez ce mot",
     testedWordCount: "mot(s) testé(s)",
