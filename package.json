@@ -16,13 +16,13 @@
   "commands": [
     {
       "name": "sutom",
-      "title": "sutom",
+      "title": "Sutom",
       "description": "Help resolving sutom's in french",
       "mode": "view"
     },
     {
       "name": "wordle",
-      "title": "wordle",
+      "title": "Wordle",
       "description": "Help resolving wordle's in english",
       "mode": "view"
     }
