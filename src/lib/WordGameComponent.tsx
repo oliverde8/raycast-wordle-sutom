@@ -27,9 +27,10 @@ export function WordGameComponent({ config }: WordGameProps) {
 
   const wordSelector = useMemo(() => new WordSelector(config), [config]);
 
-  const generateSuggestion = (customTestedWords?: WordFeedback[]) => {
+  const generateSuggestion = (customTestedWords?: WordFeedback[], customLength?: number) => {
     const wordsToFilter = customTestedWords || testedWords;
-    const suggestion = wordSelector.selectWord(wordLength, wordsToFilter);
+    const lengthToUse = customLength || wordLength;
+    const suggestion = wordSelector.selectWord(lengthToUse, wordsToFilter);
 
     if (!suggestion) {
       showToast({
@@ -54,7 +55,7 @@ export function WordGameComponent({ config }: WordGameProps) {
       title: config.ui.lengthSetTitle,
       message: config.ui.lengthSetMessage(length),
     });
-    generateSuggestion();
+    generateSuggestion(undefined, length);
   };
 
   const handleFeedbackSubmit = (values: Values) => {
@@ -116,7 +117,7 @@ export function WordGameComponent({ config }: WordGameProps) {
           </ActionPanel>
         }
       >
-        <Form.Dropdown id="nbLetters" title={config.ui.lengthLabel} value={wordLength.toString()}>
+        <Form.Dropdown id="nbLetters" title={config.ui.lengthLabel}>
           {lengthOptions}
         </Form.Dropdown>
 
