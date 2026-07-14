@@ -14,6 +14,10 @@ export interface LanguageConfig {
     maxLength: number;
     allowAccents: boolean;
     excludedCharacters: string[];
+    // Maps a raw source word to its in-game form before filtering/bucketing (e.g. French
+    // strips accents so ÉVITER→"eviter" matches what SUTOM accepts). Defaults to lowercase.
+    normalizeWord?: (word: string) => string;
+    // Validates the normalized word; reject anything that isn't a plain in-game word.
     customFilter?: (word: string) => boolean;
   };
 
@@ -49,6 +53,9 @@ export interface LanguageConfig {
     resetAction: string;
     submitFeedbackAction: string;
     cancelAction: string;
+    rejectWordAction: string;
+    saveExcludedAction: string;
+    clearExcludedAction: string;
 
     // Additional UI labels
     tryWordLabel: string;
@@ -61,6 +68,15 @@ export interface LanguageConfig {
     correctPositionLabel: string;
     wrongPositionLabel: string;
     notInWordLabel: string;
+    notSetLabel: string; // neutral default for an untouched letter
     lettersUnit: string; // for "4 letters", "5 letters", etc.
+
+    // Excluded words / letters
+    excludedWordsLabel: string;
+    excludedWordsPlaceholder: string;
+    excludedLettersLabel: string;
+    excludedLettersPlaceholder: string;
+    wordRejectedTitle: string;
+    wordRejectedMessage: string;
   };
 }

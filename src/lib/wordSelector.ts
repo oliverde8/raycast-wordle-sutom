@@ -8,12 +8,20 @@ export type WordFeedback = {
   feedback: LetterFeedback[];
 };
 
+// User-provided constraints independent of the tested-word feedback: whole words the game
+// rejects as non-existent, and letters known to be absent (e.g. tips from a friend).
+export type Exclusions = { words?: string[]; letters?: string[] };
+
+type ExclusionSets = { words: Set<string>; letters: Set<string> };
+
 type WordsDictionary = { [key: number]: string[] };
 
 export class WordSelector {
   private dictionary: WordsDictionary;
   private cache: Map<string, string[]> = new Map();
-  private readonly MAX_CANDIDATES_FOR_ANALYSIS = 100;
+  private openerCache: Map<number, string[]> = new Map();
+  private readonly MAX_CANDIDATES_FOR_ANALYSIS = 400;
+  private readonly OPENER_POOL_SIZE = 20;
   private config: LanguageConfig;
   private wordScorer: WordScorer;
 
@@ -24,40 +32,43 @@ export class WordSelector {
   }
 
   private createWordsDictionary(): WordsDictionary {
-    const dictionary: WordsDictionary = {};
     const { wordSource, wordFilter } = this.config;
-
     const sourceWords = typeof wordSource === "function" ? wordSource() : wordSource;
+    const normalizeWord = wordFilter.normalizeWord ?? ((w: string) => w.toLowerCase());
 
-    const filteredWords = sourceWords.filter((word: string) => {
-      // Basic length check
+    // Bucket by length using Sets — normalization (e.g. accent stripping) collapses several
+    // raw words to the same in-game form, so dedup is required.
+    const buckets: { [key: number]: Set<string> } = {};
+
+    for (const raw of sourceWords) {
+      // Reject punctuation / formatting characters on the raw word.
+      if (wordFilter.excludedCharacters.some((char) => raw.includes(char))) {
+        continue;
+      }
+
+      const word = normalizeWord(raw);
+
+      // Length is checked on the normalized form (accent stripping does not change length,
+      // but the check must reflect the word actually stored).
       if (word.length < wordFilter.minLength || word.length > wordFilter.maxLength) {
-        return false;
+        continue;
       }
 
-      // Check excluded characters
-      for (const char of wordFilter.excludedCharacters) {
-        if (word.includes(char)) {
-          return false;
-        }
-      }
-
-      // Custom filter if provided
+      // Custom filter validates the normalized word.
       if (wordFilter.customFilter && !wordFilter.customFilter(word)) {
-        return false;
+        continue;
       }
 
-      return true;
-    });
-
-    filteredWords.forEach((word: string) => {
-      const length = word.length;
-      if (!dictionary[length]) {
-        dictionary[length] = [];
+      if (!buckets[word.length]) {
+        buckets[word.length] = new Set();
       }
-      dictionary[length].push(word.toLowerCase());
-    });
+      buckets[word.length].add(word);
+    }
 
+    const dictionary: WordsDictionary = {};
+    for (const length of Object.keys(buckets)) {
+      dictionary[Number(length)] = [...buckets[Number(length)]];
+    }
     return dictionary;
   }
 
@@ -195,23 +206,80 @@ export class WordSelector {
     return counts;
   }
 
-  private getStartingWord(length: number): string | null {
-    const startingWords = this.config.startingWords[length];
-    if (!startingWords || startingWords.length === 0) {
-      const availableWords = this.dictionary[length] || [];
-      if (availableWords.length === 0) return null;
-      return availableWords[Math.floor(Math.random() * availableWords.length)];
-    }
-
-    return startingWords[Math.floor(Math.random() * startingWords.length)];
+  // Normalize to the dictionary's storage form (accent-free lowercase — SUTOM strips accents).
+  private normalize(text: string): string {
+    return text
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
   }
 
-  public selectWord(length: number, testedWords: WordFeedback[]): string | null {
+  private buildExclusionSets(exclusions: Exclusions): ExclusionSets {
+    const words = new Set((exclusions.words || []).map((w) => this.normalize(w.trim())).filter((w) => w.length > 0));
+    const letters = new Set<string>();
+    for (const chunk of exclusions.letters || []) {
+      for (const ch of this.normalize(chunk)) {
+        if (ch >= "a" && ch <= "z") letters.add(ch);
+      }
+    }
+    return { words, letters };
+  }
+
+  // A dictionary word is excluded if it is a rejected word, or contains any absent letter.
+  private isExcluded(word: string, ex: ExclusionSets): boolean {
+    if (ex.words.has(word)) return true;
+    if (ex.letters.size > 0) {
+      for (const ch of word) {
+        if (ex.letters.has(ch)) return true;
+      }
+    }
+    return false;
+  }
+
+  // Top opening words ranked by letter frequency + position (cheap, data-driven per language).
+  // The ranked list is dictionary-derived so it is cached once; exclusions are applied after.
+  private getRankedOpeners(length: number, ex: ExclusionSets): string[] {
+    if (!this.openerCache.has(length)) {
+      const ranked = (this.dictionary[length] || [])
+        .map((word) => ({
+          word,
+          score: this.wordScorer.calculateFrequencyScore(word) + this.wordScorer.calculatePositionScore(word),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, this.OPENER_POOL_SIZE)
+        .map((s) => s.word);
+      this.openerCache.set(length, ranked);
+    }
+    return this.openerCache.get(length)!.filter((word) => !this.isExcluded(word, ex));
+  }
+
+  private getStartingWord(length: number, ex: ExclusionSets): string | null {
+    const availableWords = (this.dictionary[length] || []).filter((word) => !this.isExcluded(word, ex));
+    if (availableWords.length === 0) return null;
+
+    // Prefer curated starting words that are the right length, exist in the dictionary and are
+    // not excluded (drops typos, wrong-length or rejected entries). Fall back to the
+    // frequency-ranked openers, then to any available word.
+    const dictionaryWords = new Set(this.dictionary[length] || []);
+    const validStartingWords = [
+      ...new Set((this.config.startingWords[length] || []).map((w) => w.toLowerCase())),
+    ].filter((word) => word.length === length && dictionaryWords.has(word) && !this.isExcluded(word, ex));
+
+    const pool = validStartingWords.length > 0 ? validStartingWords : this.getRankedOpeners(length, ex);
+    if (pool.length === 0) {
+      return availableWords[Math.floor(Math.random() * availableWords.length)];
+    }
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  public selectWord(length: number, testedWords: WordFeedback[], exclusions: Exclusions = {}): string | null {
+    const ex = this.buildExclusionSets(exclusions);
+
     if (testedWords.length === 0) {
-      return this.getStartingWord(length);
+      return this.getStartingWord(length, ex);
     }
 
-    const filteredWords = this.getFilteredWords(length, testedWords);
+    const filteredWords = this.getFilteredWords(length, testedWords).filter((word) => !this.isExcluded(word, ex));
 
     if (filteredWords.length === 0) {
       return null;
@@ -236,10 +304,10 @@ export class WordSelector {
     const availableWords = this.dictionary[length] || [];
     const filteredWords = this.filterWords(availableWords, testedWords);
 
-    // Cache result if reasonable size
-    if (filteredWords.length < 1000) {
-      this.cache.set(cacheKey, filteredWords);
-    }
+    // Cache every result: a game only produces a handful of distinct keys, and caching the
+    // large early-round pools is exactly what keeps 6+ letter games responsive (selectWord
+    // and the UI analysis reuse the same filtered set instead of re-scanning ~10k-40k words).
+    this.cache.set(cacheKey, filteredWords);
 
     return filteredWords;
   }
@@ -311,14 +379,16 @@ export class WordSelector {
   public getWordAnalysis(
     length: number,
     testedWords: WordFeedback[],
+    exclusions: Exclusions = {},
   ): {
     totalWords: number;
     remainingWords: number;
     reductionRatio: number;
     averageScore?: number;
   } {
+    const ex = this.buildExclusionSets(exclusions);
     const totalWords = this.getAllWords(length).length;
-    const filteredWords = this.getFilteredWords(length, testedWords);
+    const filteredWords = this.getFilteredWords(length, testedWords).filter((word) => !this.isExcluded(word, ex));
     const remainingWords = filteredWords.length;
 
     let averageScore: number | undefined;

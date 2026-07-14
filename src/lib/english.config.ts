@@ -4,43 +4,45 @@
 import englishWords from "an-array-of-english-words";
 import type { LanguageConfig } from "./languageConfig";
 
-// English letter frequency based on corpus analysis
+// English letter frequency by DICTIONARY word-membership (better for a word guesser than
+// prose ETAOIN — S and I rank higher). Source: Wikipedia "Letter frequency".
 const ENGLISH_LETTER_FREQUENCY: { [key: string]: number } = {
-  e: 12.7,
-  t: 9.1,
-  a: 8.2,
-  o: 7.5,
-  i: 7.0,
-  n: 6.7,
-  s: 6.3,
-  h: 6.1,
-  r: 6.0,
-  d: 4.3,
-  l: 4.0,
-  c: 2.8,
-  u: 2.8,
-  m: 2.4,
-  w: 2.4,
-  f: 2.2,
-  g: 2.0,
-  y: 2.0,
-  p: 1.9,
-  b: 1.3,
+  e: 11.0,
+  s: 8.7,
+  i: 8.6,
+  a: 7.8,
+  r: 7.3,
+  n: 7.2,
+  t: 6.7,
+  o: 6.1,
+  l: 5.3,
+  c: 4.0,
+  d: 3.8,
+  u: 3.3,
+  g: 3.0,
+  p: 2.8,
+  m: 2.7,
+  h: 2.3,
+  b: 2.0,
+  y: 1.6,
+  f: 1.4,
   v: 1.0,
-  k: 0.8,
-  j: 0.15,
-  x: 0.15,
-  q: 0.1,
-  z: 0.07,
+  k: 0.97,
+  w: 0.91,
+  z: 0.44,
+  x: 0.27,
+  j: 0.25,
+  q: 0.19,
 };
 
-// Optimal starting words for English Wordle
+// Recognizable, high letter-coverage opening words per length (information-theory picks:
+// 3Blue1Brown, Norvig). Any entry not present in the dictionary is dropped at runtime.
 const ENGLISH_STARTING_WORDS: { [key: number]: string[] } = {
-  4: ["TIRE", "ARTS", "LOSE", "SENT", "NEAR"],
-  5: ["AROSE", "ADIEU", "AUDIO", "OURIE", "RAISE"],
-  6: ["STONER", "TRAILS", "REASON", "SOILED", "TENORS"],
-  7: ["AROUSED", "AROINTS", "ALIONES", "AROUSED", "SOLATIA"],
-  8: ["AROUSING", "RESOLUTE", "ABSOLUTE", "SOLITARE", "TEARINGS"],
+  4: ["RATE", "TALE", "LANE", "TEAR", "ROSE"],
+  5: ["SLATE", "CRANE", "CRATE", "TRACE", "STARE", "RAISE", "ARISE"],
+  6: ["SENIOR", "ORIENT", "RETAIL", "TAILOR", "RATIOS", "REASON"],
+  7: ["RETINAS", "ANTLERS", "SALTINE", "ORIENTS", "NASTIER"],
+  8: ["NOTARIES", "ORIENTAL", "LATRINES", "SENORITA", "TAILORED"],
 };
 
 export const englishConfig: LanguageConfig = {
@@ -62,8 +64,8 @@ export const englishConfig: LanguageConfig = {
   },
 
   positionScoring: {
-    commonFirstLetters: ["s", "c", "b", "p", "t", "a", "f", "d"],
-    commonLastLetters: ["s", "e", "y", "d", "n", "t", "r"],
+    commonFirstLetters: ["t", "a", "s", "c", "p", "b", "d", "o", "m", "f"],
+    commonLastLetters: ["e", "s", "d", "t", "n", "r", "y"],
     firstLetterBonus: 2,
     lastLetterBonus: 1.5,
   },
@@ -91,6 +93,9 @@ export const englishConfig: LanguageConfig = {
     resetAction: "Reset",
     submitFeedbackAction: "Submit Feedback",
     cancelAction: "Cancel",
+    rejectWordAction: "Word Rejected by Game",
+    saveExcludedAction: "Save Exclusions",
+    clearExcludedAction: "Clear Exclusions",
 
     // Additional UI labels
     tryWordLabel: "Try this word",
@@ -103,6 +108,14 @@ export const englishConfig: LanguageConfig = {
     correctPositionLabel: "Correct position",
     wrongPositionLabel: "Wrong position",
     notInWordLabel: "Not in word",
+    notSetLabel: "Not set",
     lettersUnit: "letters",
+
+    excludedWordsLabel: "Excluded words",
+    excludedWordsPlaceholder: "Words the game rejects (one per line)",
+    excludedLettersLabel: "Excluded letters",
+    excludedLettersPlaceholder: 'Letters not in the word, e.g. "aqz"',
+    wordRejectedTitle: "Word excluded",
+    wordRejectedMessage: "Finding a new suggestion",
   },
 };
